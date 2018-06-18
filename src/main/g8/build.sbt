@@ -8,12 +8,32 @@ val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % Test
 
 lazy val `$name;format="norm"$` = (project in file("."))
-  .aggregate(`$name;format="norm"$-api`, `$name;format="norm"$-impl`, `$name;format="normalize"$-stream-api`, `$name;format="normalize"$-stream-impl`)
+  .aggregate(`$name;format="norm"$-api`, `$name;format="norm"$-impl`)
 
-lazy val `$name;format="norm"$-api` = (project in file("$name;format="norm"$-api"))
+lazy val crossType = CrossType.Full
+
+
+lazy val `$name;format="norm"$-api-root` = (crossProject in file("$name;format="norm"$-api"))
   .settings(
+    name := "gheo-provider-api-root",
+    EclipseKeys.eclipseOutput := Some("eclipse_target"),
+    unmanagedSourceDirectories in Compile := Seq((scalaSource in Compile).value) ++ crossType.sharedSrcDir(baseDirectory.value, "main"),
+    unmanagedSourceDirectories in Test := Seq((scalaSource in Test).value) ++ crossType.sharedSrcDir(baseDirectory.value, "test")
+  )
+lazy val `$name;format="norm"$-api` = 
+  `$name;format="norm"$-api-root`.jvm
+  .settings(
+    name := "$name;format="norm"$-api",
     libraryDependencies ++= Seq(
       lagomScaladslApi
+    )
+  )
+lazy val `$name;format="norm"$-api-js` = 
+  `$name;format="norm"$-api-root`.js
+  .settings(
+    name := "$name;format="norm"$-api-js",
+    libraryDependencies ++= Seq(
+      
     )
   )
 
@@ -30,21 +50,3 @@ lazy val `$name;format="norm"$-impl` = (project in file("$name;format="norm"$-im
   )
   .settings(lagomForkedTestSettings: _*)
   .dependsOn(`$name;format="norm"$-api`)
-
-lazy val `$name;format="norm"$-stream-api` = (project in file("$name;format="norm"$-stream-api"))
-  .settings(
-    libraryDependencies ++= Seq(
-      lagomScaladslApi
-    )
-  )
-
-lazy val `$name;format="norm"$-stream-impl` = (project in file("$name;format="norm"$-stream-impl"))
-  .enablePlugins(LagomScala)
-  .settings(
-    libraryDependencies ++= Seq(
-      lagomScaladslTestKit,
-      macwire,
-      scalaTest
-    )
-  )
-  .dependsOn(`$name;format="norm"$-stream-api`, `$name;format="norm"$-api`)
